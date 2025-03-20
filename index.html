@@ -38,7 +38,6 @@
         </label>
         <h3>Output:</h3>
         <textarea id="outputText" rows="4" readonly></textarea>
-        <button onclick="saveToGitHub()">Save to GitHub</button>
     </div>
     
     <script>
@@ -116,27 +115,6 @@
             } catch (e) {
                 return "Decryption error";
             }
-        }
-
-        function saveToGitHub() {
-            const text = document.getElementById("textInput").value;
-            const output = document.getElementById("outputText").value;
-            const data = `Input: ${text}\nOutput: ${output}`;
-            
-            fetch('https://api.github.com/repos/your-github-username/your-repository/contents/encryption_output.txt', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token your-personal-access-token',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Saving encryption output',
-                    content: btoa(data),
-                    sha: ''
-                })
-            }).then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
         }
 
         function processText() {
