@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Encryption Tool</title>
+    <title>John's Tools</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -30,126 +30,11 @@
 </head>
 <body>
     <div class="container">
-        <h2>Elliptic Curve Encryption</h2>
-        <textarea id="textInput" rows="4" placeholder="Enter text..."></textarea>
-        <input type="text" id="keyInput" placeholder="Enter encryption key">
-        <label>
-            <input type="checkbox" id="encryptMode" checked> Encrypt
-        </label>
-        <h3>Output:</h3>
-        <textarea id="outputText" rows="4" readonly></textarea>
-        <button onclick="saveToGitHub()">Save to GitHub</button>
-    </div>
-    
-    <script>
-        class SimpleECC {
-            constructor() {
-                this.p = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F');
-                this.a = BigInt(0);
-                this.b = BigInt(7);
-                this.Gx = BigInt('0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798');
-                this.Gy = BigInt('0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8');
-            }
+        <h2>INDEX</h2>
+        <button onclick="Elleptic()">Go to Elleptic Encryption</button>
+<script>
+function Elleptic() {
+    window.location.href = "/another-page.html";  // Relative path to the other page
+}
+</script>
 
-            modInv(a, m) {
-                let m0 = m, t, q;
-                let x0 = BigInt(0), x1 = BigInt(1);
-                while (a > 1n) {
-                    q = a / m;
-                    t = m, m = a % m, a = t;
-                    t = x0, x0 = x1 - q * x0, x1 = t;
-                }
-                return x1 < 0n ? x1 + m0 : x1;
-            }
-
-            pointAdd(P, Q) {
-                if (!P) return Q;
-                if (!Q) return P;
-                if (P.x === Q.x && P.y !== Q.y) return null;
-                let m = P.x === Q.x ? (3n * P.x * P.x + this.a) * this.modInv(2n * P.y, this.p) % this.p
-                                    : (Q.y - P.y) * this.modInv(Q.x - P.x, this.p) % this.p;
-                let x3 = (m * m - P.x - Q.x) % this.p;
-                let y3 = (m * (P.x - x3) - P.y) % this.p;
-                return { x: (x3 + this.p) % this.p, y: (y3 + this.p) % this.p };
-            }
-
-            scalarMult(k, P) {
-                let R = null;
-                let addend = P;
-                while (k > 0n) {
-                    if (k & 1n) R = this.pointAdd(R, addend);
-                    addend = this.pointAdd(addend, addend);
-                    k >>= 1n;
-                }
-                return R;
-            }
-
-            deriveKeyFromInput(input) {
-                let hash = BigInt(0);
-                for (let i = 0; i < input.length; i++) {
-                    hash = (hash * 31n + BigInt(input.charCodeAt(i))) % this.p;
-                }
-                return this.scalarMult(hash, { x: this.Gx, y: this.Gy });
-            }
-
-            encryptDecrypt(text, key) {
-                let keyHex = key.x.toString(16) + key.y.toString(16);
-                let output = '';
-                for (let i = 0; i < text.length; i++) {
-                    output += String.fromCharCode(text.charCodeAt(i) ^ keyHex.charCodeAt(i % keyHex.length));
-                }
-                return output;
-            }
-        }
-
-        function ellipticCurveEncrypt(text, key) {
-            const ecc = new SimpleECC();
-            let derivedKey = ecc.deriveKeyFromInput(key);
-            return btoa(ecc.encryptDecrypt(text, derivedKey));
-        }
-
-        function ellipticCurveDecrypt(text, key) {
-            const ecc = new SimpleECC();
-            let derivedKey = ecc.deriveKeyFromInput(key);
-            try {
-                return ecc.encryptDecrypt(atob(text), derivedKey);
-            } catch (e) {
-                return "Decryption error";
-            }
-        }
-
-        function saveToGitHub() {
-            const text = document.getElementById("textInput").value;
-            const output = document.getElementById("outputText").value;
-            const data = `Input: ${text}\nOutput: ${output}`;
-            
-            fetch('https://api.github.com/repos/your-github-username/your-repository/contents/encryption_output.txt', {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token your-personal-access-token',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Saving encryption output',
-                    content: btoa(data),
-                    sha: ''
-                })
-            }).then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Error:', error));
-        }
-
-        function processText() {
-            let text = document.getElementById("textInput").value;
-            let key = document.getElementById("keyInput").value;
-            let encrypt = document.getElementById("encryptMode").checked;
-            let output = encrypt ? ellipticCurveEncrypt(text, key) : ellipticCurveDecrypt(text, key);
-            document.getElementById("outputText").value = output;
-        }
-
-        document.getElementById("textInput").addEventListener("input", processText);
-        document.getElementById("keyInput").addEventListener("input", processText);
-        document.getElementById("encryptMode").addEventListener("change", processText);
-    </script>
-</body>
-</html>
